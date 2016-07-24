@@ -501,9 +501,6 @@ def OnChatTest(userID):
 
 
 def OffChatTest(userID):
-
-    print "Off Chat"
-    print userID
     db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
     cursor = db.cursor()
     sql = "UPDATE User_Info SET isChat = 0 WHERE userID like \"%s\" " % userID
@@ -916,37 +913,92 @@ def IsUserOnChatNow(userID):
 	else:
 		return False
 
+
+def UpdateUserScore(userID,strCode):
+	db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+	cursor = db.cursor()
+	sql="UPDATE User_Info SET score=score+1 WHERE userId like \"%s\" " % userID
+	try:
+		cursor.execute(sql)
+		db.commit()
+	except:
+		db.rollback()
+
+	return 
+
+def GetSetPairOKString():
+	strResult = U"服务器已经为您找到聊天的朋友，您可以开始聊天了"
+	return strResult
+
+def GetScoreRequest():
+	strResult=U"您已经退出聊天，请发送以下数字为对方打分\n\
+			    0-----扣除对方5分\n\
+				1-----扣除对方3分\n\
+				2-----对方分数不变\n\
+				3-----对方加3分\n\
+				4-----对方加5分"
+
+	return strResult
+
+#用户登陆并且聊天时进行处理
+def ProcessUser_Login_Chat(userID,strMsg):
+	strResult = U""
+	if(IsQuitChatCodeTest(strMsg)):
+		OffChatTest(userID)
+		UnPairChat(userID)
+		strResult = GetScoreRequest()
+
+	else:
+		SendMessageTest(userID,strMsg)
+		strResult = GetMessageTest(userID)
+
+	return strResult 
+
+def ProcessUser_Login_NotChat(userID,strMsg):
+	strResult= U""
+	if(IsScoredTest(userID)):
+		SetPairTest(userID)
+		strResult=GetSetPairOKString()
+	else:
+		if(IsScoreCodeTest(strMsg)):
+			pairID = GetPairTest(userID)
+			UpdateUserScore(pairID,strMsg)
+		else:
+			strResult = GetScoreRequest()
+
+	return strResult
+
+#用户登录时进行处理
+def ProcessUser_Login(userID,strMsg):
+	strResult=U""
+	if(IsChatTest(userID)):
+		strResult = ProcessUser_Login_Chat(userID,strMsg)
+	else:
+		strResult = ProcessUser_Login_NotChat(userID,strMsg)
+
+	return strResult
+
+#用户未登陆后进行处理
+def ProcessUser_NotLogin(userID,strMsg):
+	strResult=U"您已经登陆"
+	LoginTest(userID)
+	SetPairTest(userID)
+
+	return strResult
+
 #是否有用户未匹配
+
 
 def ParserMsgTest(strMsgOrg,userID):
 	LogMsgTest(userID,strMsgOrg)
 	AddUserTest(userID)
-
 	strMsg = str(strMsgOrg).encode('utf8')
 
 	strResult=U""
-
-	if(IsUserOnChatNow(userID)):
-		if(IsQuitChatCode(strMsg)):
-			OffChatTest(userID)
-			strResult = U"您希望退出聊天，请为对方打分\n\
-			              0---聊天很不愉快，扣除4分\n\
-						  1---聊天有点不愉快，扣除2分\n\
-						  2---感觉一般，分数不变\n \
-						  3---聊天比较开心，加3分\n\
-						  4---聊天非常开心，加5分\n"
-		else:
-			SendMessageTest(userID,strMsg)
-			strResult = GetMessageTest(userID)
-
-	elif (IsUserNotScored(userID)):
-		if (IsScoreCode(strMsg)):
-			SetScoredTest(userID)
-		else:
-			pass
-
+	if (IsLoginTest(userID)):
+		strResult = ProcessUserLogin(userID,strMsg)
 	else:
-		SetPairTest(userID)
+		strResult = ProcessUserNotLogin(userID,strMsg)
 
 	return strResult
 
