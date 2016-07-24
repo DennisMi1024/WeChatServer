@@ -558,11 +558,26 @@ def IsLoginTest(userID):
 
             
 
+def SetUserScored(userID):
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+    cursor = db.cursor()
+    sql = "UPDATE  User_Info SET isScored = 1 WHERE userID like \"%s\" " % userID
+    bLogIn= False
+    try:
+        cursor.execute(sql)
+		db.commit()
+    except:
+        print "SQL ERROR "
+        print sql
+	
+    cursor.close()
+    db.close()
+    return bLogIn
 
 def NotScoredTest(userID):
     db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
     cursor = db.cursor()
-    sql = "SELECT * FROM ChatPair WHERE isScored = 0 AND FromID like \"%s\" " % userID
+    sql = "SELECT * FROM User_Info WHERE isScored = 0 AND userID like \"%s\" " % userID
     bLogIn= False
     try:
         cursor.execute(sql)
@@ -579,7 +594,7 @@ def NotScoredTest(userID):
     db.close()
     return bLogIn
 
-def IsScoreCode(strMsg):
+def IsScoreCodeTest(strMsg):
 	if(strMsg=='0'):
 		return True
 	elif (strMsg=='1'):
@@ -589,7 +604,7 @@ def IsScoreCode(strMsg):
 	elif (strMsg=='3'):
 		return True
 
-def IsQuitChatCode(strMsg):
+def IsQuitChatCodeTest(strMsg):
 	if (strMsg=='0102'):
 		return True
 	else:
@@ -882,6 +897,14 @@ def UpdateUserLocation(userID,longitude,lantitude,city):
     db.close()
 	
     return 
+
+#判断用户是否未打分
+def IsUserNotScored(userID):
+	if( IsLoginTest(userID) and NotScoredTest(userID)):
+		return True
+	else:
+		return False
+
 #判断用户是否在聊天
 def IsUserOnChatNow(userID):
 	if (IsLoginTest(userID) and IsChatTest(userID)):
@@ -898,54 +921,35 @@ def IsUserOnChatNow(userID):
 def ParserMsgTest(strMsgOrg,userID):
 	LogMsgTest(userID,strMsgOrg)
 	AddUserTest(userID)
-	if(IsUserOnChatNow(userID)):
-		LoginTest(userID)
-		pass
-	else:
-		pass
 
 	strMsg = str(strMsgOrg).encode('utf8')
+
 	strResult=U""
-	if (IsLoginTest(userID)):
-		print "***********Parse Msg***********************"
-		print strMsg
-		print "***********Parse Msg**********************"
 
-		if (strMsg == "0102"):
-			LogOutTest(userID)
-			strResult =U"服务器:您已成功退出登陆"
-			return strResult
+	if(IsUserOnChatNow(userID)):
+		if(IsQuitChatCode(strMsg)):
+			OffChatTest(userID)
+			strResult = U"您希望退出聊天，请为对方打分\n\
+			              0---聊天很不愉快，扣除4分\n\
+						  1---聊天有点不愉快，扣除2分\n\
+						  2---感觉一般，分数不变\n \
+						  3---聊天比较开心，加3分\n\
+						  4---聊天非常开心，加5分\n"
+		else:
+			SendMessageTest(userID,strMsg)
+			strResult = GetMessageTest(userID)
 
-		SendMessageTest(userID,strMsgOrg)
-		if (IsChatTest(userID)):
-			strResultMsg = GetMessageTest(userID)
-			if (len(strResultMsg) == 0):
-				strResult=U"服务器:对方还没有给您发消息，不要着急哦"
-			else:
-				strResult= U"您的朋友:"+strResultMsg
-		
-		return  strResult
+	elif (IsUserNotScored(userID)):
+		if (IsScoreCode(strMsg)):
+			SetScoredTest(userID)
+		else:
+			pass
+
 	else:
-		LoginTest(userID)
 		SetPairTest(userID)
-		"""strResult=U"服务器：本公众号是一个匿名聊天软件,可以与陌生人一对一的聊天，\n \
-			    1,输入任意字符登陆
-				2,登陆状态下,输入0102退出登陆\n \
-				2,登陆以后，系统会自动为你查找陌生人，如果你想退出聊天,请输入0102\n\
-				3,本公众号目前处于开发状态，有可能会有信息延迟或者不稳定的情况,希望大家不要着急\n\
-				4,为了保证您的安全，请不要将个人信息透露给陌生人\n\
-				6,未登录状态下，发送消息，将会回复本提示 \n\
-				\n \
-				服务器:系统正在为您查找朋友，请不要着急哦"""
 
-		strResult=U"服务器：本公众号是一个匿名聊天软件,可以与陌生人一对一的聊天，\n \
-			    1,输入任意字符登陆,聊天对象随机分配\n\
-				2,登陆状态下,输入0102退出登陆\n \
-				\n \
-				服务器:系统正在为您查找朋友，请不要着急哦"
-
-	
 	return strResult
+
 
 # Create your views here.
 
