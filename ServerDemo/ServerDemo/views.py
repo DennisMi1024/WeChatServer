@@ -436,7 +436,7 @@ def AddUserTest(userID):
         cursor.execute(sql1)
         results = cursor.fetchall()
         if (len(results) == 0):
-            sql = "INSERT INTO User_Info(userId,isLogin,isChat,name) VALUES('%s',0,0,'nobody')" % userID
+            sql = "INSERT INTO User_Info(userId,isLogin,isChat,name,isScored) VALUES('%s',0,0,'nobody',1)" % userID
             cursor.execute(sql)
             db.commit()
         else:
@@ -498,7 +498,36 @@ def OnChatTest(userID):
     cursor.close()
     db.close()
 
+def SetScorePairChatTest(userID):
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+    cursor = db.cursor()
+    sql1="UPDATE  ChatPair SET status = 2 WHERE FromID like \"%s\" " % userID
+    try:
+        cursor.execute(sql1)
+        db.commit()
+    except:
+        db.rollback()
 
+	db.commit()
+    cursor.close()
+    db.close()
+	
+
+
+def UnChatPairChatTest(userID):
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+    cursor = db.cursor()
+    sql1="UPDATE  ChatPair SET status = 1 WHERE FromID like \"%s\" " % userID
+    try:
+        cursor.execute(sql1)
+        db.commit()
+    except:
+        db.rollback()
+
+	db.commit()
+    cursor.close()
+    db.close()
+	
 
 def OffChatTest(userID):
     db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
@@ -511,21 +540,6 @@ def OffChatTest(userID):
     except:
         db.rollback()
 
-	sql1="UPDATE  ChatPair SET status = 1 WHERE FromID like \"%s\" " % userID
-	print sql1
-    try:
-        cursor.execute(sql1)
-        db.commit()
-    except:
-        db.rollback()
-
-	sql2="UPDATE ChatPair SET status = 1  WHERE ToID  like \"%s\" " % userID
-	print sql2
-    try:
-        cursor.execute(sql2)
-        db.commit()
-    except:
-        db.rollback()
 	
 	db.commit()
     cursor.close()
@@ -562,7 +576,7 @@ def SetUserScored(userID):
     bLogIn= False
     try:
         cursor.execute(sql)
-		db.commit()
+        db.commit()
     except:
         print "SQL ERROR "
         print sql
@@ -592,6 +606,8 @@ def NotScoredTest(userID):
     return bLogIn
 
 def IsScoreCodeTest(strMsg):
+	print "************IsScore Test"
+	print strMsg
 	if(strMsg=='0'):
 		return True
 	elif (strMsg=='1'):
@@ -600,6 +616,10 @@ def IsScoreCodeTest(strMsg):
 		return True
 	elif (strMsg=='3'):
 		return True
+	elif (strMsg=='4'):
+		return True
+	else:
+		return False
 
 def IsQuitChatCodeTest(strMsg):
 	if (strMsg=='0102'):
@@ -648,75 +668,45 @@ def IsChatTest(userID):
     db.close()
     return bLogIn
 
-def SetScoredTest(userID):
-	if not IsLoginTest(userID):
-		return ""
-	if IsChatTest(userID):
-		return ""
+def SetUnScoredTest(userID):
 	db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
 	cursor = db.cursor()
-	sql="SELECT * FROM User_Info WHERE isLogin=1 AND isChat = 0 AND userId not like \"%s\" " % userID
+	sql="UPDATE User_Info SET isScored=0  WHERE userId  like \"%s\" " % userID
 	pairID=""
 	try:
 		cursor.execute(sql)
-		print sql
-		results = cursor.fetchall()
-		if (len(results) != 0):
-			pairID = results[0][1]
-			print "***********RESULTs*******************"
-			print pairID
-			print userID
-			print "*****************************"
-			OnChatTest(userID)
-			OnChatTest(pairID)
-			sql="UPDATE User_Info SET isChat = 1 WHERE userId like \"%s\" "%userID
-			try:
-				cursor.execute(sql)
-				db.commit()
-			except:
-				db.rollback()
-			
-			sql="UPDATE User_Info SET isChat = 1 WHERE userId like \"%s\" "%pairID
-			try:
-				cursor.execute(sql)
-				db.commit()
-			except:
-				db.rollback()
-				
-			sql="INSERT INTO ChatPair(FromID,ToID) VALUES('%s','%s')"%(userID,pairID)
-			try:
-				cursor.execute(sql)
-				db.commit()
-			except:
-				db.rollback()
-
-			sql="INSERT INTO ChatPair(FromID,ToID) VALUES('%s','%s')"%(pairID,userID)
-			try:
-				cursor.execute(sql)
-				db.commit()
-			except:
-				db.rollback()
-		else:
-			print "*********************************"
-			pairID = ""
-			print pairID
-			print "*********************************"
+		db.commit()
 	except:
-		print "SQL ERROR "
+		db.rollback()
 		print sql
     
 	cursor.close()
 	db.close()
 	return 
 
-def SetPairTest(userID):
-	if not IsLoginTest(userID):
-		return ""
-	if IsChatTest(userID):
-		return ""
+def SetScoredTest(userID):
 	db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
 	cursor = db.cursor()
-	sql="SELECT * FROM User_Info WHERE isLogin=1 AND isChat = 0 AND userId not like \"%s\" " % userID
+	sql="UPDATE User_Info SET isScored=1  WHERE userId  like \"%s\" " % userID
+	pairID=""
+	try:
+		cursor.execute(sql)
+		db.commit()
+	except:
+		db.rollback()
+		print sql
+    
+	cursor.close()
+	db.close()
+	return 
+
+def SetUnPairTest(userID):
+	return
+
+def SetPairTest(userID):
+	db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+	cursor = db.cursor()
+	sql="SELECT * FROM User_Info WHERE isLogin=1 AND isChat = 0 AND isScored = 1 AND userId not like \"%s\" " % userID
 	pairID=""
 	try:
 		cursor.execute(sql)
@@ -728,6 +718,8 @@ def SetPairTest(userID):
 			print pairID
 			print userID
 			print "*****************************"
+			SetUnScoredTest(pairID)
+			SetUnScoredTest(userID)
 			OnChatTest(userID)
 			OnChatTest(pairID)
 			sql="UPDATE User_Info SET isChat = 1 WHERE userId like \"%s\" "%userID
@@ -744,14 +736,14 @@ def SetPairTest(userID):
 			except:
 				db.rollback()
 				
-			sql="INSERT INTO ChatPair(FromID,ToID) VALUES('%s','%s')"%(userID,pairID)
+			sql="INSERT INTO ChatPair(FromID,ToID,status) VALUES('%s','%s',0)"%(userID,pairID)
 			try:
 				cursor.execute(sql)
 				db.commit()
 			except:
 				db.rollback()
 
-			sql="INSERT INTO ChatPair(FromID,ToID) VALUES('%s','%s')"%(pairID,userID)
+			sql="INSERT INTO ChatPair(FromID,ToID,status) VALUES('%s','%s',0)"%(pairID,userID)
 			try:
 				cursor.execute(sql)
 				db.commit()
@@ -771,15 +763,72 @@ def SetPairTest(userID):
 	return 
      
 
+def IsPairQuitTest(userID):
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+    cursor = db.cursor()
+    sql="SELECT * FROM ChatPair WHERE FromID like \"%s\" AND status = 0 " % userID
+
+    bSelfNotQuit = False
+
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchone()
+        if (len(results) != 0):
+			bSelfNotQuit = True 
+        else:
+			bSelfNotQuit = False 
+    except:
+        print "SQL ERROR "
+        print sql
+
+    sql1="SELECT * FROM ChatPair WHERE ToID like \"%s\" AND status = 0 " % userID
+
+    bPairQuit = False
+
+    try:
+        cursor.execute(sql1)
+        results = cursor.fetchone()
+        if (len(results) != 0):
+			bPairQuit = True 
+        else:
+			bPair = False 
+    except:
+        print "SQL ERROR "
+        print sql
+
+
+    cursor.close()
+    db.close()
+	
+    if (bSelfNotQuit and bPairQuit):
+		return True
+    else:
+		return False
+
+#获得打分的对象
+def GetScorePairTest(userID):
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
+    cursor = db.cursor()
+    sql="SELECT * FROM ChatPair WHERE FromID like \"%s\" AND status = 2 " % userID
+
+    toID=""
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchone()
+        if (len(results) != 0):
+            toID = results[2]
+        else:
+            toID = ""
+            print toID
+    except:
+        print "SQL ERROR "
+        print sql
+    cursor.close()
+    db.close()
+    return toID
+
 def GetPairTest(userID):
-    if IsLoginTest(userID):
-		pass
-
-    if IsChatTest(userID):
-		pass
-
-
-    db = MySQLdb.connect("localhost","root","dennis","WeChat")
+    db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
     cursor = db.cursor()
     sql="SELECT * FROM ChatPair WHERE FromID like \"%s\" AND status = 0 " % userID
 
@@ -915,15 +964,35 @@ def IsUserOnChatNow(userID):
 
 
 def UpdateUserScore(userID,strCode):
+	print "*********Update User Score"
 	db = MySQLdb.connect("localhost","root","dennis","WeChatTest")
 	cursor = db.cursor()
-	sql="UPDATE User_Info SET score=score+1 WHERE userId like \"%s\" " % userID
+	strUpdate=U""
+	if(strCode=='0'):
+		strUpdate='-5'
+	elif (strCode=='1'):
+		strUpdate='-3'
+	elif (strCode=='2'):
+		strUpdate='+0'
+	elif (strCode=='3'):
+		strUpdate='+2'
+	elif (strCode=='4'):
+		strUpdate='+4'
+	else:
+		strUpdate='+0'
+
+	sql="UPDATE User_Info SET score=score%s WHERE userId like \"%s\" " % (strUpdate,userID)
+
+	print sql
 	try:
 		cursor.execute(sql)
 		db.commit()
 	except:
 		db.rollback()
 
+
+	cursor.close()
+	db.close()
 	return 
 
 def GetSetPairOKString():
@@ -931,23 +1000,23 @@ def GetSetPairOKString():
 	return strResult
 
 def GetScoreRequest():
-	strResult=U"您已经退出聊天，请发送以下数字为对方打分\n\
+	strResult=U"服务器:您已经退出聊天,请发送以下数字为对方打分\n\
 			    0-----扣除对方5分\n\
 				1-----扣除对方3分\n\
 				2-----对方分数不变\n\
-				3-----对方加3分\n\
-				4-----对方加5分"
+				3-----对方加2分\n\
+				4-----对方加4分"
 
 	return strResult
 
 #用户登陆并且聊天时进行处理
 def ProcessUser_Login_Chat(userID,strMsg):
+	print "*******************************ProcessUserLoginChat"
 	strResult = U""
 	if(IsQuitChatCodeTest(strMsg)):
 		OffChatTest(userID)
-		UnPairChat(userID)
+		SetScorePairChatTest(userID)
 		strResult = GetScoreRequest()
-
 	else:
 		SendMessageTest(userID,strMsg)
 		strResult = GetMessageTest(userID)
@@ -961,8 +1030,16 @@ def ProcessUser_Login_NotChat(userID,strMsg):
 		strResult=GetSetPairOKString()
 	else:
 		if(IsScoreCodeTest(strMsg)):
-			pairID = GetPairTest(userID)
+			pairID = GetScorePairTest(userID)
+			print "*************Login No Chat"
+			print userID
+			print strMsg
+			print pairID
 			UpdateUserScore(pairID,strMsg)
+			SetScoredTest(userID)
+			OffChatTest(userID)
+			LogOutTest(userID)
+			strResult=U"服务器：感谢您为对方打分"
 		else:
 			strResult = GetScoreRequest()
 
@@ -980,7 +1057,7 @@ def ProcessUser_Login(userID,strMsg):
 
 #用户未登陆后进行处理
 def ProcessUser_NotLogin(userID,strMsg):
-	strResult=U"您已经登陆"
+	strResult=U"服务器：您已经登陆"
 	LoginTest(userID)
 	SetPairTest(userID)
 
@@ -996,9 +1073,9 @@ def ParserMsgTest(strMsgOrg,userID):
 
 	strResult=U""
 	if (IsLoginTest(userID)):
-		strResult = ProcessUserLogin(userID,strMsg)
+		strResult = ProcessUser_Login(userID,strMsg)
 	else:
-		strResult = ProcessUserNotLogin(userID,strMsg)
+		strResult = ProcessUser_NotLogin(userID,strMsg)
 
 	return strResult
 
