@@ -1,0 +1,75 @@
+from django.shortcuts import render
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+
+from django.http.response import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
+from wechat_sdk import WechatConf
+from wechat_sdk import WechatBasic
+from wechat_sdk.exceptions import ParseError
+from wechat_sdk.messages import (TextMessage,VoiceMessage,ImageMessage,VideoMessage)
+
+MyConf=WechatConf(
+		token='dennismi1024gmail',
+		appid='wxc86a795a9cb7a1e4',
+		appsecret='8a952ff560c18ededefb568a779129d6',
+		encrypt_mode='YOUR_MODE',
+		encoding_aes_key='oTrKxpp2S3RwB090SDnoVaiFRIADIGHBhOF4B7ZkcBJ',
+		)
+# Create your views here.
+
+
+firstUserID=""
+secondUserID=""
+
+MessageToSecond=""
+MessageToFirst=""
+
+def wechat_home(request):
+	
+	global firstUserID
+	global secondUserID
+	global MessageToFirst
+	global MessageToSecond
+	signature=request.GET.get('signature')
+	timestamp=request.GET.get('timestamp')
+	nonce = request.GET.get('nonce')
+	wechat_instance = WechatBasic(conf=MyConf)
+	print("signature",signature)
+	print("timeStamp",timestamp)
+	print("nonce",nonce)
+	if not wechat_instance.check_signature(signature=signature,timestamp=timestamp,nonce=nonce):
+		return HttpResponseBadRequest('Verify Failed')
+	else:
+		if request.method == 'GET':
+			response = request.GET.get('echostr','error')
+		else:
+			try:
+				wechat_instance.parse_data(request.body)
+				message = wechat_instance.get_message()
+				print("messageID",message.id)
+				print("messsageTarget",message.target)
+				print("messageSource",message.source)
+				print("messageTime",message.time)
+				if (firstUserID == ""):
+					firstUserID = message.source
+				elif (secondUserID == ""):
+					secondUserID = message.source
+
+
+				if isinstance(message,TextMessage):
+					if (message.source == firstUserID):
+						MessageToSecond = message.content
+						reply_text="Server"+MessageToFirst
+					elif (message.source == secondUserID):
+						MessageToFirst = message.content
+						reply_text = "Server"+MessageToSecond
+				else:
+					reply_text='other'
+				response = wechat_instance.response_text(content=reply_text)
+			except ParseError:
+				return HttpResponseBadRequest("Invalid XML Data")
+		return HttpResponse(response,content_type='application/xml')
+

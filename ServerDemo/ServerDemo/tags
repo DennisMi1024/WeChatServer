@@ -1,0 +1,69 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALLOWED_HOSTS	settings.py	/^ALLOWED_HOSTS = []$/;"	v
+AUTH_PASSWORD_VALIDATORS	settings.py	/^AUTH_PASSWORD_VALIDATORS = [$/;"	v
+AddUser	MysqlPython.py	/^    def AddUser(self,UserId):$/;"	m	class:WeChatDb	access:public
+AddUser	MysqlPython.py	/^def AddUser(userID):$/;"	f	access:public
+AddUser	views.py	/^def AddUser(userID):$/;"	f	access:public
+BASE_DIR	settings.py	/^BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))$/;"	v
+ChatForFunConf	views.py	/^ChatForFunConf=WechatConf($/;"	v
+Close	MysqlPython.py	/^    def Close(self):$/;"	m	class:WeChatDb	access:public
+DATABASES	settings.py	/^DATABASES = {$/;"	v
+DEBUG	settings.py	/^DEBUG = True$/;"	v
+GetMessage	MysqlPython.py	/^def GetMessage(userID):$/;"	f	access:public
+GetMessage	views.py	/^def GetMessage(userID):$/;"	f	access:public
+GetPair	MysqlPython.py	/^def GetPair(userID):$/;"	f	access:public
+GetPair	views.py	/^def GetPair(userID):$/;"	f	access:public
+INSTALLED_APPS	settings.py	/^INSTALLED_APPS = [$/;"	v
+IsChat	MysqlPython.py	/^def IsChat(userID):$/;"	f	access:public
+IsChat	views.py	/^def IsChat(userID):$/;"	f	access:public
+IsLogin	MysqlPython.py	/^def IsLogin(userID):$/;"	f	access:public
+IsLogin	views.py	/^def IsLogin(userID):$/;"	f	access:public
+LANGUAGE_CODE	settings.py	/^LANGUAGE_CODE = 'en-us'$/;"	v
+LogMsg	views.py	/^def LogMsg(userID,strMsg):$/;"	f	access:public
+LogOut	MysqlPython.py	/^def LogOut(userID):$/;"	f	access:public
+LogOut	views.py	/^def LogOut(userID):$/;"	f	access:public
+Login	MysqlPython.py	/^def Login(userID):$/;"	f	access:public
+Login	views.py	/^def Login(userID):$/;"	f	access:public
+MIDDLEWARE_CLASSES	settings.py	/^MIDDLEWARE_CLASSES = [$/;"	v
+MyConf	views.py	/^MyConf=WechatConf($/;"	v
+OffChat	MysqlPython.py	/^def OffChat(userID):$/;"	f	access:public
+OffChat	views.py	/^def OffChat(userID):$/;"	f	access:public
+OnChat	MysqlPython.py	/^def OnChat(userID):$/;"	f	access:public
+OnChat	views.py	/^def OnChat(userID):$/;"	f	access:public
+ParserMsg	MysqlPython.py	/^def ParserMsg(strMsg,userID):$/;"	f	access:public
+ParserMsg	views.py	/^def ParserMsg(strMsgOrg,userID):$/;"	f	access:public
+PutMessageToQueue	MysqlPython.py	/^def PutMessageToQueue(toID,msg):$/;"	f	access:public
+PutMessageToQueue	views.py	/^def PutMessageToQueue(toID,msg):$/;"	f	access:public
+ROOT_URLCONF	settings.py	/^ROOT_URLCONF = 'ServerDemo.urls'$/;"	v
+SECRET_KEY	settings.py	/^SECRET_KEY = '_s-2i@q(t!-0ia4372h%+cv&pq7yhvq4eg_1*(p@zrycbt%&6-'$/;"	v
+STATIC_URL	settings.py	/^STATIC_URL = '\/static\/'$/;"	v
+SendMessage	MysqlPython.py	/^def SendMessage(userID,msg):$/;"	f	access:public
+SendMessage	views.py	/^def SendMessage(userID,msg):$/;"	f	access:public
+SetPair	MysqlPython.py	/^def SetPair(userID):$/;"	f	access:public
+SetPair	views.py	/^def SetPair(userID):$/;"	f	access:public
+TEMPLATES	settings.py	/^TEMPLATES = [$/;"	v
+TIME_ZONE	settings.py	/^TIME_ZONE = 'UTC'$/;"	v
+Test	MysqlPython.py	/^def Test():$/;"	f	access:public
+USE_I18N	settings.py	/^USE_I18N = True$/;"	v
+USE_L10N	settings.py	/^USE_L10N = True$/;"	v
+USE_TZ	settings.py	/^USE_TZ = True$/;"	v
+WSGI_APPLICATION	settings.py	/^WSGI_APPLICATION = 'ServerDemo.wsgi.application'$/;"	v
+WeChatDb	MysqlPython.py	/^class WeChatDb:$/;"	c	inherits:
+__init__	MysqlPython.py	/^    def __init__(self,ip,userName,passwd,DBName):$/;"	m	class:WeChatDb	access:public
+appid	views.py	/^		appid='wxc86a795a9cb7a1e4',$/;"	v
+appid	views.py	/^		appid='wxcb80882bbbbe9c80',$/;"	v
+application	wsgi.py	/^application = get_wsgi_application()$/;"	v
+appsecret	views.py	/^		appsecret='8a952ff560c18ededefb568a779129d6',$/;"	v
+appsecret	views.py	/^		appsecret='9fb82f088d37f072daacbd156fcc7b24',$/;"	v
+encoding_aes_key	views.py	/^		encoding_aes_key='fQZM0PHIlIviBBq8cd9al4KRBysNz0T5a5D6VagoEo0',$/;"	v
+encoding_aes_key	views.py	/^		encoding_aes_key='oTrKxpp2S3RwB090SDnoVaiFRIADIGHBhOF4B7ZkcBJ',$/;"	v
+encrypt_mode	views.py	/^		encrypt_mode='YOUR_MODE',$/;"	v
+token	views.py	/^		token='dennismi1024gmail',$/;"	v
+urlpatterns	urls.py	/^urlpatterns = [$/;"	v
+wechatChatForFun	views.py	/^def wechatChatForFun(request):$/;"	f	access:public
+wechat_home	views.py	/^def wechat_home(request):$/;"	f	access:public
