@@ -16,7 +16,33 @@ from wechat_sdk.messages import (TextMessage,VoiceMessage,ImageMessage,VideoMess
 
 import MySQLdb
 
+def GetQiuShiBaiKeMsg():
+    db = MySQLdb.connect("localhost","root","dennis","WeChat")
+    cursor = db.cursor()
+    sql1 = "SELECT * FROM QiuShiBaiKe ORDER BY count"
+    strResult=U""
+    try:
+        cursor.execute(sql1)
+        results = cursor.fetchone()
+        if (len(results) != 0):
+            #print results
+            strResult = str(results[1])
 
+        try:
+            sql2="UPDATE QiuShiBaiKe SET count = count+1 WHERE id = %s"%results[0]
+            cursor.execute(sql2)
+            db.commit()
+        except:
+            print sql2
+            db.rollback()
+
+    except:
+        print "Error: unable to fecth data"
+    
+    cursor.close()
+    db.close()
+
+    return strResult
 
 def LogMsg(userID,strMsg):
 	print "***************Log Msg"
@@ -369,12 +395,17 @@ def ParserMsg(strMsgOrg,userID):
 
 		SendMessage(userID,strMsgOrg)
 		if (IsChat(userID)):
-			strResultMsg = GetMessage(userID)
-			if (len(strResultMsg) == 0):
-				strResult=U"服务器:对方还没有给您发消息，不要着急哦"
-			else:
-				strResult= U"您的朋友:"+strResultMsg
+		    strResultMsg = GetMessage(userID)
+                    if (len(strResultMsg) == 0):
+                        strQSBK=GetQiuShiBaiKeMsg()
+                        strResult=U"服务器:"+strQSBK
+	            else:
+                        strResult= U"您的朋友:"+strResultMsg
 		
+                else:
+                    strQSBK=GetQiuShiBaiKeMsg()
+                    strResult=U"服务器:"+strQSBK
+
 		return  strResult
 	else:
 		Login(userID)
@@ -774,7 +805,7 @@ def IsPairQuitTest(userID):
         cursor.execute(sql)
         results = cursor.fetchone()
         if (len(results) != 0):
-			bSelfNotQuit = True 
+		bSelfNotQuit = True 
         else:
 			bSelfNotQuit = False 
     except:
