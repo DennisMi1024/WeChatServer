@@ -40,11 +40,10 @@ def GetQiuShiBaiKeMsg():
             cursor.execute(sql2)
             db.commit()
         except:
-            print sql2
             db.rollback()
 
     except:
-        print "Error: unable to fecth data"
+        pass
 
     cursor.close()
     db.close()
@@ -53,9 +52,6 @@ def GetQiuShiBaiKeMsg():
 
 
 def LogMsg(userID, strMsg):
-    print "***************Log Msg"
-    print userID
-    print strMsg
     strInsertMsg = str(strMsg).decode('utf8')
 
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChat")
@@ -65,12 +61,11 @@ def LogMsg(userID, strMsg):
         userID, strInsertMsg)
 
     try:
-        print sql
         cursor.execute(sql)
         db.commit()
 
     except:
-        print "Error: unable to fecth data"
+        pass
 
     cursor.close()
     db.close()
@@ -89,10 +84,9 @@ def AddUser(userID):
             cursor.execute(sql)
             db.commit()
         else:
-            print "Get Result"
             print(results)
     except:
-        print "Error: unable to fecth data"
+        pass 
 
     cursor.close()
     db.close()
@@ -115,12 +109,10 @@ def Login(userID):
 
 
 def LogOut(userID):
-    print userID
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChat")
     cursor = db.cursor()
     OffChat(userID)
     pairID = GetPair(userID)
-    print pairID
     OffChat(pairID)
     sql = "UPDATE User_Info SET isLogin = 0 WHERE userID like \"%s\" " % userID
     try:
@@ -149,12 +141,9 @@ def OnChat(userID):
 
 def OffChat(userID):
 
-    print "Off Chat"
-    print userID
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChat")
     cursor = db.cursor()
     sql = "UPDATE User_Info SET isChat = 0 WHERE userID like \"%s\" " % userID
-    print sql
     try:
         cursor.execute(sql)
         db.commit()
@@ -380,7 +369,7 @@ def GetMessage(userID):
     return strMsg
 
 
-def ParserMsg(strMsgOrg, userID):
+def ParserMsgOld(strMsgOrg, userID):
     LogMsg(userID, strMsgOrg)
     print(userID)
     AddUser(userID)
@@ -740,10 +729,12 @@ def SetUnPairTest(userID):
 
 
 def SetPairTest(userID):
+    pairSex = GetPairSex(userID)
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
     cursor = db.cursor()
-    sql = "SELECT * FROM User_Info WHERE isLogin=1 AND isChat = 0 AND isScored = 1 AND userId not like \"%s\" " % userID
+    sql = "SELECT * FROM User_Info WHERE isLogin=1 AND isChat = 0 AND isScored = 1 AND sex = pairSex AND userId not like \"%s\" " % userID
     pairID = ""
+    bOK = False
     try:
         cursor.execute(sql)
         print sql
@@ -758,6 +749,7 @@ def SetPairTest(userID):
             SetUnScoredTest(userID)
             OnChatTest(userID)
             OnChatTest(pairID)
+            bOK = True
             sql = "UPDATE User_Info SET isChat = 1 WHERE userId like \"%s\" " % userID
             try:
                 cursor.execute(sql)
@@ -798,8 +790,8 @@ def SetPairTest(userID):
 
     cursor.close()
     db.close()
-    return
 
+    return bOK
 
 def IsPairQuitTest(userID):
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
@@ -916,6 +908,34 @@ def SendMessageTest(userID, msg):
 
     return
 
+#获得应该匹配的聊天对象的性别
+def GetPairSex(userID):
+    db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
+    cursor = db.cursor()
+    sql = "SELECT sex FROM User_Info WHERE userId like \"%s\"" % userID
+    strMsg = ""
+
+    pairSex=''
+    try:
+        cursor.execute(sql)
+        results = cursor.fetchone()
+        print "Get Pair Sex  userID "
+        print results
+        if(str(results[0])=='1'):
+            pairSex = '0'
+        else:
+            pairSex = '1'
+    except:
+        print "SQL ERROR"
+
+    cursor.close()
+    db.close()
+
+    return pairSex
+
+def GetPairNickName(userID):
+    strResult = U"您的朋友说:\n"
+    return strResult
 
 def GetMessageTest(userID):
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
@@ -924,44 +944,49 @@ def GetMessageTest(userID):
 
     strMsg = ""
     try:
-        print sql
         cursor.execute(sql)
         results = cursor.fetchall()
 
-        print results
         cursor.execute(sql)
         for elem in results:
             strMsg += elem[2]
             strMsg += "\n"
 
-        print strMsg
         sql = "UPDATE Message SET isSend=1,ToReceiverTime=now() WHERE isSend=0 AND ReceiveID like \"%s\" " % userID
         try:
-            print sql
             cursor.execute(sql)
             db.commit()
         except:
             db.rollback()
     except:
-        print "SQL ERROR"
-        print sql
+        print "Error"
 
     cursor.close()
     db.close()
+    strResult = U""
+    if(len(strMsg) != 0):
+        strResult = GetPairNickName(userID)+strMsg
+    else:
+        strResult = strMsg
+    return strResult
 
-    return strMsg
+
+#登陆聊天欢迎词
+def GetLoginWelcomString():
+    strResult = U"服务器:\n\n您已经成功登录,系统将会自动为您查找好友\n\n退出登陆请输入0102"
+    return strResult
+
+#退出聊天欢迎词
+def GetLogoutWelcomeString():
+    strResult = U"服务器:\n\n您已经成功退出登陆,感谢您的使用"
+    return strResult
+
 
 
 def UpdateUserLocation(userID, longitude, lantitude, city):
-    print "Update User Location "
-    print userID
-    print longitude
-    print lantitude
-    print city
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
     cursor = db.cursor()
     sql1 = "SELECT * FROM User WHERE userId like \"%s\" ;" % userID
-    print sql1
     try:
         cursor.execute(sql1)
         results = cursor.fetchall()
@@ -969,13 +994,12 @@ def UpdateUserLocation(userID, longitude, lantitude, city):
             sql = "INSERT INTO User(userId,longitude,lantitude,city) VALUES(\"%s\",10.25,10.25,'%s')" % (
                 userID, city)
             cursor.execute(sql)
-            print sql
             db.commit()
         else:
-            print "Get Result"
-            print(results)
+            pass
+
     except:
-        print "Error: unable to fecth data"
+        pass
 
     cursor.close()
     db.close()
@@ -1006,7 +1030,6 @@ def IsUserOnChatNow(userID):
 
 
 def UpdateUserScore(userID, strCode):
-    print "*********Update User Score"
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
     cursor = db.cursor()
     strUpdate = U""
@@ -1026,7 +1049,6 @@ def UpdateUserScore(userID, strCode):
     sql = "UPDATE User_Info SET score=score%s WHERE userId like \"%s\" " % (
         strUpdate, userID)
 
-    print sql
     try:
         cursor.execute(sql)
         db.commit()
@@ -1057,7 +1079,6 @@ def GetScoreRequest():
 
 
 def ProcessUser_Login_Chat(userID, strMsg):
-    print "*******************************ProcessUserLoginChat"
     strResult = U""
     if(IsQuitChatCodeTest(strMsg)):
         OffChatTest(userID)
@@ -1066,22 +1087,26 @@ def ProcessUser_Login_Chat(userID, strMsg):
     else:
         SendMessageTest(userID, strMsg)
         strResult = GetMessageTest(userID)
-
+        if (len(strResult) == 0):
+            strResult = "服务器：\n"+GetQiuShiBaiKeMsg()
     return strResult
 
 
 def ProcessUser_Login_NotChat(userID, strMsg):
     strResult = U""
     if(IsScoredTest(userID)):
-        SetPairTest(userID)
-        strResult = GetSetPairOKString()
+        if (IsQuitChatCodeTest(strMsg)):
+            OffChatTest(userID)
+            LogOutTest(userID)
+            strResult=GetLogoutWelcomeString()
+        else:
+            if (SetPairTest(userID)):
+                strResult = GetSetPairOKString()
+            else:
+                strResult = "服务器:\n"+GetQiuShiBaiKeMsg() 
     else:
         if(IsScoreCodeTest(strMsg)):
             pairID = GetScorePairTest(userID)
-            print "*************Login No Chat"
-            print userID
-            print strMsg
-            print pairID
             UpdateUserScore(pairID, strMsg)
             SetScoredTest(userID)
             OffChatTest(userID)
@@ -1108,7 +1133,7 @@ def ProcessUser_Login(userID, strMsg):
 
 
 def ProcessUser_NotLogin(userID, strMsg):
-    strResult = U"服务器：您已经登陆"
+    strResult = GetLoginWelcomString()
     LoginTest(userID)
     SetPairTest(userID)
 
@@ -1130,8 +1155,7 @@ def IsUserSetSexTest(userID):
         else:
             bLogIn = True
     except:
-        print "SQL ERROR "
-        print sql
+        pass
 
     cursor.close()
     db.close()
@@ -1151,15 +1175,13 @@ def IsSexSetCodeTest(strMsg):
 def UpdateUserSexTest(userID, strMsg):
     db = MySQLdb.connect("localhost", "root", "dennis", "WeChatTest")
     cursor = db.cursor()
-    sql = "UPDATE User_Info SET Sex=%s,isSexed=1  WHERE userId  like \"%s\" " % (
-        strMsg, userID)
+    sql = "UPDATE User_Info SET Sex=%s,isSexed=1  WHERE userId  like \"%s\" " % (strMsg, userID)
     pairID = ""
     try:
         cursor.execute(sql)
         db.commit()
     except:
         db.rollback()
-        print sql
     cursor.close()
     db.close()
     return
@@ -1185,7 +1207,7 @@ def ProcessUser_NotSetSex(userID, strMsg):
 
 
 def ProcessUser_SetSex(userID, strMsg):
-    strResult = U""
+    strResult = U"ProcessUser_SetTex"
     if (IsLoginTest(userID)):
         strResult = ProcessUser_Login(userID, strMsg)
     else:
@@ -1198,11 +1220,11 @@ def ParserMsgTest(strMsgOrg, userID):
     AddUserTest(userID)
     strMsg = str(strMsgOrg).encode('utf8')
 
-    strResult = U""
+    strResult = U"Test"
     if (IsUserSetSexTest(userID)):
-        ProcessUser_SetSex(userID,strMsg)
+        strResult = ProcessUser_SetSex(userID,strMsg)
     else:
-        ProcessUser_NotSetSex(userID,strMsg)
+        strResult = ProcessUser_NotSetSex(userID,strMsg)
 
     return strResult
 
@@ -1228,8 +1250,10 @@ ChatForFunConf = WechatConf(
 # Create your views here.
 
 
+def ParserMsg(userID,strMsg):
+    return ParserMsgTest(userID,strMsg)
+
 def wechat_home(request):
-    print("Get Message")
     signature = request.GET.get('signature')
     timestamp = request.GET.get('timestamp')
     nonce = request.GET.get('nonce')
@@ -1239,42 +1263,12 @@ def wechat_home(request):
             signature=signature, timestamp=timestamp, nonce=nonce):
         return HttpResponseBadRequest('Verify Failed')
     else:
-        if request.method == 'GET':
-            response = request.GET.get('echostr', 'error')
-        else:
-            try:
-                wechat_instance.parse_data(request.body)
-                message = wechat_instance.get_message()
-                if isinstance(message, TextMessage):
-                    reply_text = str(message.content).encode('utf8')
-                    reply_text = ParserMsgTest(reply_text, message.source)
-                elif isinstance(message, ImageMessage):
-                    reply_text = str(message.picurl).encode('utf8')
-                    reply_text = ParserMsgTest(reply_text, message.source)
-                elif isinstance(message, LocationMessage):
-                    print "********Location **********************"
-                    print message.location
-                    print message.label
-
-                    print "********Location **********************"
-                    reply_text = str(message.label).encode('utf8')
-                    UpdateUserLocation(
-                        message.source,
-                        message.location[1],
-                        message.location[0],
-                        message.label)
-                    reply_text = ParserMsgTest(reply_text, message.source)
-                else:
-                    reply_text = U"服务器:目前只支持文字消息,非常抱歉"
-
-                response = wechat_instance.response_text(content=reply_text)
-            except ParseError:
-                return HttpResponseBadRequest("Invalid XML Data")
-        return HttpResponse(response, content_type='application/xml')
+        reply_text = "Test"
+    response = wechat_instance.response_text(content=reply_text)
+    return HttpResponse(response, content_type='application/xml')
 
 
 def wechatChatForFun(request):
-    print("Get Message")
     signature = request.GET.get('signature')
     timestamp = request.GET.get('timestamp')
     nonce = request.GET.get('nonce')
